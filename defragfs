@@ -123,7 +123,13 @@ while (defined (my $file = <FILES>)) {
   my $res = <FRAG>;
   if ($res =~ m/.*:\s+(\d+) extents? found/) {
     my $fragment = $1;
-    if ($fragment eq 0) { $fragment = 1; }
+    if ($fragment eq 0) {
+      my $size = (stat($file))[7];
+      if ($size > 0) {
+        printf("\rSystem reports zero fragments for '$file' with size $size bytes.  Perhaps file is locked, in use, or missing permissions?\n");
+      }
+      $fragment = 1;
+    }
     $fragments+=$fragment;
     if ($fragment > 1) {
       system("echo -n \"$res\" >> $TMP_filefrag_1");
