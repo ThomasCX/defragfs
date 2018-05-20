@@ -108,6 +108,7 @@ while (defined (my $file = <FILES>)) {
   $file =~ s/\;/\\\;/g;
   $file =~ s/\|/\\\|/g;
   $file =~ s/'/\\'/g;
+  $file =~ s/"/\\"/g;
   $file =~ s/ /\\ /g;
   open (FRAG, "filefrag $file |");
   my $res = <FRAG>;
