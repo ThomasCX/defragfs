@@ -99,6 +99,7 @@ system("rm -f $TMP_defrag_filelist_2");
 my $progress = 0;
 open (FILES, "find \"" . $DIR . "\" -xdev -type f |");
 while (defined (my $file = <FILES>)) {
+  chomp($file);
   $file =~ s/!/\\!/g;
   $file =~ s/#/\\#/g;
   $file =~ s/&/\\&/g;
