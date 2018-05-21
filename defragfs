@@ -136,6 +136,8 @@ while (defined (my $file = <FILES>)) {
       $fragfiles++;
      }
     $files++;
+  } else {
+    printf("\rFailed to parse fragmentation for: $file\n");
   }
   close (FRAG);
   if (($progress++ % 1000) eq 0) { print "."; }
