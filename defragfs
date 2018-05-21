@@ -14,7 +14,7 @@ print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br
 
 ($DIR, $ARG) = @ARGV;
 
-if($ARG =~ m/h/) {	die("GNU/Linux file systems rarely fragmented files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
+if($ARG =~ m/h/) {	die("GNU/Linux file systems rarely fragment files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
 
 Using defragfs:
 
@@ -170,7 +170,7 @@ if ($fragfiles > 0) {
 $default_defrag_ratio = ($files == 1) ? 100 : ($fragfiles / $files) * 100;
 
 if (((($fragfiles / $files) * 100) > $max_fragrate) || (($fragments / $files) > $max_avgfrags) || ($FORCE)) {
-  print ("\nYou need a defragmentation or Your are using -f parameter!\n");
+  print ("\nYou need a defragmentation or you are using -f parameter!\n");
 } else {
   print ("\nYou do not need a defragmentation!\n");
   exit;
