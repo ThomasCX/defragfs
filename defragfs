@@ -78,10 +78,12 @@ print ("Analysis in progress...\n\n");
 my $files = 0; # number of files
 my $fragments = 0; # number of fragment before defrag
 my $fragfiles = 0; # number of fragmented files before defrag
-my $TMP_filefrag_1 = "/tmp/frags-result-tmp";
-my $TMP_filefrag_2 = "/tmp/frags-result";
-my $TMP_defrag_filelist_1 = "/tmp/defrag-filelist-tmp";
-my $TMP_defrag_filelist_2 = "/tmp/defrag-filelist";
+my @hash_chars = ("0".."9", "A".."Z", "a".."z");
+my $random_chars = randomChars(4);
+my $TMP_filefrag_1 = "/tmp/frags-result-tmp$random_chars";
+my $TMP_filefrag_2 = "/tmp/frags-result$random_chars";
+my $TMP_defrag_filelist_1 = "/tmp/defrag-filelist-tmp$random_chars";
+my $TMP_defrag_filelist_2 = "/tmp/defrag-filelist$random_chars";
 my $max_fragrate = 1; # max "File Fragmentation Rate" used to determine whether worth defrag.
 my $max_avgfrags = 1.1; # max "Avg File Fragments" used to determine whether worth defrag.
 my $default_defrag_ratio; # default defragmentation ratio in percentage
@@ -208,8 +210,10 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   while (<DEFRAG>) {
     s/(.*)\n/$1/;
     $from = $_;
-    s/(.*)/$1.ft/;
-    $to = $_;
+    $to = $1 . ".defrag_tmp$random_chars";
+    while (-e $to) {
+      $to .= randomChars(1);
+    }
     
     my $i_file = $actual_file;
     my $i_tries = 0;
@@ -258,6 +262,11 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
     }
   }
 
+  system("rm -f $TMP_filefrag_1");
+  system("rm -f $TMP_filefrag_2");
+  system("rm -f $TMP_defrag_filelist_1");
+  system("rm -f $TMP_defrag_filelist_2");
+
   system("sync");
   print ("\n\nDone!\n\n");
   
@@ -265,5 +274,14 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   else { goto start; }
 } else {
   exit;
+}
+
+sub randomChars {
+  my $cnt = shift;
+  my $str = "";
+  for(;$cnt>0;$cnt--) {
+    $str .= $hash_chars[rand @hash_chars];
+  }
+  return $str;
 }
 
