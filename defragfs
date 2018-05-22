@@ -102,6 +102,9 @@ system("rm -f $TMP_filefrag_2");
 system("rm -f $TMP_defrag_filelist_1");
 system("rm -f $TMP_defrag_filelist_2");
 
+# cleanup on aborts
+$SIG{'INT'} = $SIG{'QUIT'} = $SIG{'ABRT'} = $SIG{'TERM'} = \&abort;
+
 my $progress = 0;
 open (FILES, "find \"" . $DIR . "\" -xdev -type f |");
 while (defined (my $file = <FILES>)) {
@@ -295,5 +298,11 @@ sub randomChars {
     $str .= $hash_chars[rand @hash_chars];
   }
   return $str;
+}
+
+sub abort {
+  print "interrupt signaled, cleaning up...\n";
+  unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
+  exit(1);
 }
 
