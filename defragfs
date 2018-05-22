@@ -72,7 +72,7 @@ my $FORCE = 0;
 if($ARG =~ m/a/) { $AUTO = 1; }
 if($ARG =~ m/f/) { $FORCE = 1; }
 
-if (($DIR eq "") || ($DIR =~ m/-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
+if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
 "; }
 
 start:
