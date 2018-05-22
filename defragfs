@@ -194,6 +194,7 @@ while (<TMPFRAGLIST>) {
   my $filename = $1;
   system("echo \"$1\" >> $TMP_defrag_filelist_2");
 }
+close TMPFRAGLIST;
 
 open (GETSIZE, "$TMP_defrag_filelist_2");
 my $max = 0;
@@ -202,6 +203,7 @@ while (<GETSIZE>) {
   my $size = -s "$_";
   if ($size > $max) { $max = $size; }
 }
+close GETSIZE;
 
 print ("You need AT LEAST " . sprintf("%.3f", $max / 1048576) . " Megabytes temporarily used for defragmentation (at the directory where you specified), continue (Y/N)? [Y] ");
 if ($AUTO) { $confirm = "" }
@@ -231,6 +233,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
 
       open (FRAG, "-|", "filefrag", $from);
       $res = <FRAG>;
+      close FRAG;
       if ($res =~ m/.*:\s+(\d+) extents? found/) { $fragment_from = $1; }
       
       if ($i_file eq $actual_file) {
@@ -252,6 +255,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
       } else {
         open (FRAG, "-|", "filefrag", $to);
         $res = <FRAG>;
+        close FRAG;
         if ($res =~ m/.*:\s+(\d+) extents? found/) { $fragment_to = $1; }
 
         if ($fragment_to <= $fragment_from) { # <= not just <
@@ -268,6 +272,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
       system("sync");
     }
   }
+  close DEFRAG;
 
   system("rm -f $TMP_filefrag_1");
   system("rm -f $TMP_filefrag_2");
