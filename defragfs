@@ -7,6 +7,9 @@
 # Using:	$ sudo ./defragfs / -af
 # Help: 	$ ./defragfs / -h
 
+use strict;
+use warnings;
+
 print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br>, March 2011 (help: \$ defragfs / -h)\n\n");
 
 ($DIR, $ARG) = @ARGV;
