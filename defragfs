@@ -136,7 +136,7 @@ while (defined (my $file = <FILES>)) {
 }
 close (FILES);
 
-if ($files eq 0) {
+if ($files == 0) {
   print ("The selected directory contains no file!\n");
   exit;
 }
@@ -159,7 +159,7 @@ if ($fragfiles > 0) {
   exit;
 }
 
-$default_defrag_ratio = ($files eq 1) ? 100 : ($fragfiles / $files) * 100;
+$default_defrag_ratio = ($files == 1) ? 100 : ($fragfiles / $files) * 100;
 
 if (((($fragfiles / $files) * 100) > $max_fragrate) || (($fragments / $files) > $max_avgfrags) || ($FORCE)) {
   print ("\nYou need a defragmentation or Your are using -f parameter!\n");
