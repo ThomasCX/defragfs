@@ -93,6 +93,9 @@ my $default_defrag_ratio; # default defragmentation ratio in percentage
 my $max_display_num = 10; # display how much files in report
 my $total_defrag_files = 0; # which files to be defrag, determined after user input the ratio
 my $max_tries = 1; # max "Max Tries" used to determine max attempts to defrag a file after first attempt.
+# variables used during defrag process
+my $defrag_ratio;
+my $confirm;
 
 system("rm -f $TMP_filefrag_1");
 system("rm -f $TMP_filefrag_2");
@@ -196,7 +199,7 @@ open (GETSIZE, "$TMP_defrag_filelist_2");
 my $max = 0;
 while (<GETSIZE>) {
   s/(.*)\n/$1/;
-  $size = -s "$_";
+  my $size = -s "$_";
   if ($size > $max) { $max = $size; }
 }
 
@@ -213,8 +216,8 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   
   while (<DEFRAG>) {
     s/(.*)\n/$1/;
-    $from = $_;
-    $to = $1 . ".defrag_tmp$random_chars";
+    my $from = $_;
+    my $to = $1 . ".defrag_tmp$random_chars";
     while (-e $to) {
       $to .= randomChars(1);
     }
