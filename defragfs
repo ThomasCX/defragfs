@@ -103,7 +103,8 @@ unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_fil
 $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'ABRT'} = $SIG{'TERM'} = \&abort;
 
 my $progress = 0;
-my $lasttime = 0;
+my $starttime = time();
+my $lasttime = $starttime;
 open (FILES, "find \"" . $DIR . "\" -xdev -type f |");
 while (defined (my $file = <FILES>)) {
   chomp($file);
@@ -135,7 +136,9 @@ while (defined (my $file = <FILES>)) {
   close (FRAG);
   my $now = time();
   if ($now != $lasttime) {
-    print "\r  $progress files analyzed";
+    my $et = $now - $starttime;
+    my $rate = int($progress / $et);
+    print "\r  $progress files analyzed in $et seconds @ $rate files/sec";
     $lasttime = $now;
   }
   if (($progress++ % 100) == 0) { print ". \b"; }
