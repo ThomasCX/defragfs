@@ -97,10 +97,7 @@ my $max_tries = 1; # max "Max Tries" used to determine max attempts to defrag a 
 my $defrag_ratio;
 my $confirm;
 
-system("rm -f $TMP_filefrag_1");
-system("rm -f $TMP_filefrag_2");
-system("rm -f $TMP_defrag_filelist_1");
-system("rm -f $TMP_defrag_filelist_2");
+unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
 
 # cleanup on aborts
 $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'ABRT'} = $SIG{'TERM'} = \&abort;
@@ -277,10 +274,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   }
   close DEFRAG;
 
-  system("rm -f $TMP_filefrag_1");
-  system("rm -f $TMP_filefrag_2");
-  system("rm -f $TMP_defrag_filelist_1");
-  system("rm -f $TMP_defrag_filelist_2");
+  unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
 
   system("sync");
   print ("\n\nDone!\n\n");
