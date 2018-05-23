@@ -12,6 +12,7 @@ use warnings;
 
 print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br>, March 2011 (help: \$ defragfs / -h)\n\n");
 
+my $NEEDHELP = 0;
 my ($DIR, $ARG);
 $DIR = shift(@ARGV);
 $ARG = join(" ", @ARGV);
@@ -73,8 +74,12 @@ my $FORCE = 0;
 
 if($ARG =~ m/(^|\s)-\S*a/) { $AUTO = 1; }
 if($ARG =~ m/(^|\s)-\S*f/) { $FORCE = 1; }
+if($ARG =~ m/-\S*([^afh ])\S*/) {
+  print "FATAL: unknown flag '$1' was used.\n";
+  $NEEDHELP = 1;
+}
 
-if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
+if (($DIR eq "") || ($DIR =~ m/^-/) || $NEEDHELP) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
 "; }
 
 start:
