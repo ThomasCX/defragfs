@@ -76,7 +76,7 @@ if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], 
 "; }
 
 start:
-print ("Analysis in progress...\n\n");
+print ("Analysis in progress...\n");
 
 my $files = 0; # number of files
 my $fragments = 0; # number of fragment before defrag
@@ -103,6 +103,7 @@ unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_fil
 $SIG{'INT'} = $SIG{'QUIT'} = $SIG{'ABRT'} = $SIG{'TERM'} = \&abort;
 
 my $progress = 0;
+my $lasttime = 0;
 open (FILES, "find \"" . $DIR . "\" -xdev -type f |");
 while (defined (my $file = <FILES>)) {
   chomp($file);
@@ -132,7 +133,12 @@ while (defined (my $file = <FILES>)) {
     $files++;
   }
   close (FRAG);
-  if (($progress++ % 1000) == 0) { print "."; }
+  my $now = time();
+  if ($now != $lasttime) {
+    print "\r  $progress files analyzed";
+    $lasttime = $now;
+  }
+  if (($progress++ % 100) == 0) { print ". \b"; }
 }
 close (FILES);
 
