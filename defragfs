@@ -12,9 +12,11 @@ use warnings;
 
 print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br>, March 2011 (help: \$ defragfs / -h)\n\n");
 
-($DIR, $ARG) = @ARGV;
+my ($DIR, $ARG);
+$DIR = shift(@ARGV);
+$ARG = join(" ", @ARGV);
 
-if($ARG =~ m/h/) {	die("GNU/Linux file systems rarely fragment files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
+if($ARG =~ m/(^|\s)-\S*h/) { die("GNU/Linux file systems rarely fragment files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
 
 Using defragfs:
 
@@ -69,8 +71,8 @@ if (!(-e $DIR) || !(-d $DIR)) { die "You must specify a correct directory name!
 my $AUTO = 0;
 my $FORCE = 0;
 
-if($ARG =~ m/a/) { $AUTO = 1; }
-if($ARG =~ m/f/) { $FORCE = 1; }
+if($ARG =~ m/(^|\s)-\S*a/) { $AUTO = 1; }
+if($ARG =~ m/(^|\s)-\S*f/) { $FORCE = 1; }
 
 if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
 "; }
