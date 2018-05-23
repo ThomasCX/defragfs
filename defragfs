@@ -132,7 +132,7 @@ while (defined (my $file = <FILES>)) {
     $files++;
   }
   close (FRAG);
-  if (($progress++ % 1000) eq 0) { print "."; }
+  if (($progress++ % 1000) == 0) { print "."; }
 }
 close (FILES);
 
