@@ -7,6 +7,9 @@
 # Using:	$ sudo ./defragfs / -af
 # Help: 	$ ./defragfs / -h
 
+use strict;
+use warnings;
+
 print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br>, March 2011 (help: \$ defragfs / -h)\n\n");
 
 ($DIR, $ARG) = @ARGV;
@@ -69,7 +72,7 @@ my $FORCE = 0;
 if($ARG =~ m/a/) { $AUTO = 1; }
 if($ARG =~ m/f/) { $FORCE = 1; }
 
-if (($DIR eq "") || ($DIR =~ m/-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
+if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
 "; }
 
 start:
@@ -78,25 +81,31 @@ print ("Analysis in progress...\n\n");
 my $files = 0; # number of files
 my $fragments = 0; # number of fragment before defrag
 my $fragfiles = 0; # number of fragmented files before defrag
-my $TMP_filefrag_1 = "/tmp/frags-result-tmp";
-my $TMP_filefrag_2 = "/tmp/frags-result";
-my $TMP_defrag_filelist_1 = "/tmp/defrag-filelist-tmp";
-my $TMP_defrag_filelist_2 = "/tmp/defrag-filelist";
+my @hash_chars = ("0".."9", "A".."Z", "a".."z");
+my $random_chars = randomChars(4);
+my $TMP_filefrag_1 = "/tmp/frags-result-tmp$random_chars";
+my $TMP_filefrag_2 = "/tmp/frags-result$random_chars";
+my $TMP_defrag_filelist_1 = "/tmp/defrag-filelist-tmp$random_chars";
+my $TMP_defrag_filelist_2 = "/tmp/defrag-filelist$random_chars";
 my $max_fragrate = 1; # max "File Fragmentation Rate" used to determine whether worth defrag.
 my $max_avgfrags = 1.1; # max "Avg File Fragments" used to determine whether worth defrag.
 my $default_defrag_ratio; # default defragmentation ratio in percentage
 my $max_display_num = 10; # display how much files in report
 my $total_defrag_files = 0; # which files to be defrag, determined after user input the ratio
 my $max_tries = 1; # max "Max Tries" used to determine max attempts to defrag a file after first attempt.
+# variables used during defrag process
+my $defrag_ratio;
+my $confirm;
 
-system("rm -f $TMP_filefrag_1");
-system("rm -f $TMP_filefrag_2");
-system("rm -f $TMP_defrag_filelist_1");
-system("rm -f $TMP_defrag_filelist_2");
+unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
+
+# cleanup on aborts
+$SIG{'INT'} = $SIG{'QUIT'} = $SIG{'ABRT'} = $SIG{'TERM'} = \&abort;
 
 my $progress = 0;
 open (FILES, "find \"" . $DIR . "\" -xdev -type f |");
 while (defined (my $file = <FILES>)) {
+  chomp($file);
   $file =~ s/!/\\!/g;
   $file =~ s/#/\\#/g;
   $file =~ s/&/\\&/g;
@@ -105,8 +114,10 @@ while (defined (my $file = <FILES>)) {
   $file =~ s/\$/\\\$/g;
   $file =~ s/\(/\\\(/g;
   $file =~ s/\)/\\\)/g;
+  $file =~ s/\;/\\\;/g;
   $file =~ s/\|/\\\|/g;
   $file =~ s/'/\\'/g;
+  $file =~ s/"/\\"/g;
   $file =~ s/ /\\ /g;
   open (FRAG, "filefrag $file |");
   my $res = <FRAG>;
@@ -125,7 +136,7 @@ while (defined (my $file = <FILES>)) {
 }
 close (FILES);
 
-if ($files eq 0) {
+if ($files == 0) {
   print ("The selected directory contains no file!\n");
   exit;
 }
@@ -148,7 +159,7 @@ if ($fragfiles > 0) {
   exit;
 }
 
-$default_defrag_ratio = ($files eq 1) ? 100 : ($fragfiles / $files) * 100;
+$default_defrag_ratio = ($files == 1) ? 100 : ($fragfiles / $files) * 100;
 
 if (((($fragfiles / $files) * 100) > $max_fragrate) || (($fragments / $files) > $max_avgfrags) || ($FORCE)) {
   print ("\nYou need a defragmentation or Your are using -f parameter!\n");
@@ -183,14 +194,16 @@ while (<TMPFRAGLIST>) {
   my $filename = $1;
   system("echo \"$1\" >> $TMP_defrag_filelist_2");
 }
+close TMPFRAGLIST;
 
 open (GETSIZE, "$TMP_defrag_filelist_2");
 my $max = 0;
 while (<GETSIZE>) {
   s/(.*)\n/$1/;
-  $size = -s "$_";
+  my $size = -s "$_";
   if ($size > $max) { $max = $size; }
 }
+close GETSIZE;
 
 print ("You need AT LEAST " . sprintf("%.3f", $max / 1048576) . " Megabytes temporarily used for defragmentation (at the directory where you specified), continue (Y/N)? [Y] ");
 if ($AUTO) { $confirm = "" }
@@ -205,9 +218,11 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   
   while (<DEFRAG>) {
     s/(.*)\n/$1/;
-    $from = $_;
-    s/(.*)/$1.ft/;
-    $to = $_;
+    my $from = $_;
+    my $to = $1 . ".defrag_tmp$random_chars";
+    while (-e $to) {
+      $to .= randomChars(1);
+    }
     
     my $i_file = $actual_file;
     my $i_tries = 0;
@@ -218,6 +233,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
 
       open (FRAG, "-|", "filefrag", $from);
       $res = <FRAG>;
+      close FRAG;
       if ($res =~ m/.*:\s+(\d+) extents? found/) { $fragment_from = $1; }
       
       if ($i_file eq $actual_file) {
@@ -239,6 +255,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
       } else {
         open (FRAG, "-|", "filefrag", $to);
         $res = <FRAG>;
+        close FRAG;
         if ($res =~ m/.*:\s+(\d+) extents? found/) { $fragment_to = $1; }
 
         if ($fragment_to <= $fragment_from) { # <= not just <
@@ -255,6 +272,9 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
       system("sync");
     }
   }
+  close DEFRAG;
+
+  unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
 
   system("sync");
   print ("\n\nDone!\n\n");
@@ -263,5 +283,20 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   else { goto start; }
 } else {
   exit;
+}
+
+sub randomChars {
+  my $cnt = shift;
+  my $str = "";
+  for(;$cnt>0;$cnt--) {
+    $str .= $hash_chars[rand @hash_chars];
+  }
+  return $str;
+}
+
+sub abort {
+  print "interrupt signaled, cleaning up...\n";
+  unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
+  exit(1);
 }
 
