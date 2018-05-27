@@ -12,9 +12,12 @@ use warnings;
 
 print ("defragfs 1.1.1, Released under GPLv3 by John Robson <john.robson\@usp.br>, March 2011 (help: \$ defragfs / -h)\n\n");
 
-($DIR, $ARG) = @ARGV;
+my $NEEDHELP = 0;
+my ($DIR, $ARG);
+$DIR = shift(@ARGV);
+$ARG = join(" ", @ARGV);
 
-if($ARG =~ m/h/) {	die("GNU/Linux file systems rarely fragmented files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
+if($ARG =~ m/(^|\s)-\S*h/) { die("GNU/Linux file systems rarely fragment files. The file system always allocates more space to write a file, but sometimes the file size grows so that space becomes insufficient and the file is fragmented, but even so the file system fragments the file efficiently.
 
 Using defragfs:
 
@@ -69,10 +72,14 @@ if (!(-e $DIR) || !(-d $DIR)) { die "You must specify a correct directory name!
 my $AUTO = 0;
 my $FORCE = 0;
 
-if($ARG =~ m/a/) { $AUTO = 1; }
-if($ARG =~ m/f/) { $FORCE = 1; }
+if($ARG =~ m/(^|\s)-\S*a/) { $AUTO = 1; }
+if($ARG =~ m/(^|\s)-\S*f/) { $FORCE = 1; }
+if($ARG =~ m/-\S*([^afh ])\S*/) {
+  print "FATAL: unknown flag '$1' was used.\n";
+  $NEEDHELP = 1;
+}
 
-if (($DIR eq "") || ($DIR =~ m/^-/)) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
+if (($DIR eq "") || ($DIR =~ m/^-/) || $NEEDHELP) { die "Usage: defragfs.pl DIRECTORY [-af], -af means force automatic defragmentation
 "; }
 
 start:
@@ -125,13 +132,21 @@ while (defined (my $file = <FILES>)) {
   my $res = <FRAG>;
   if ($res =~ m/.*:\s+(\d+) extents? found/) {
     my $fragment = $1;
-    if ($fragment eq 0) { $fragment = 1; }
+    if ($fragment eq 0) {
+      my $size = (stat($file))[7];
+      if ($size > 0) {
+        printf("\rSystem reports zero fragments for '$file' with size $size bytes.  Perhaps file is locked, in use, or missing permissions?\n");
+      }
+      $fragment = 1;
+    }
     $fragments+=$fragment;
     if ($fragment > 1) {
       system("echo -n \"$res\" >> $TMP_filefrag_1");
       $fragfiles++;
      }
     $files++;
+  } else {
+    printf("\rFailed to parse fragmentation for: $file\n");
   }
   close (FRAG);
   my $now = time();
@@ -171,7 +186,7 @@ if ($fragfiles > 0) {
 $default_defrag_ratio = ($files == 1) ? 100 : ($fragfiles / $files) * 100;
 
 if (((($fragfiles / $files) * 100) > $max_fragrate) || (($fragments / $files) > $max_avgfrags) || ($FORCE)) {
-  print ("\nYou need a defragmentation or Your are using -f parameter!\n");
+  print ("\nYou need a defragmentation or you are using -f parameter!\n");
 } else {
   print ("\nYou do not need a defragmentation!\n");
   exit;
