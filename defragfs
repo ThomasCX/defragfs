@@ -223,6 +223,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   print ("\nOK, please drink a cup of tea and wait...\n");
   print ("\nFile Number - File Name (Size Mb) [actual extents] - extents after defrag attempt\n");
   my $actual_file = $total_defrag_files;
+  my $total_fragments_eliminated = 0;
   open (DEFRAG, "$TMP_defrag_filelist_2");
   
   while (<DEFRAG>) {
@@ -270,6 +271,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
         if ($fragment_to <= $fragment_from) { # <= not just <
           system("mv -f \"$to\" \"$from\" 2>/dev/null"); 
           print "$fragment_to ";
+          $total_fragments_eliminated += ($fragment_from - $fragment_to);
           if ($fragment_to eq 1) { last; }
           if ($fragment_to eq $fragment_from) { $i_tries++; }
           if ($fragment_to < $fragment_from) { $i_tries--; }
@@ -286,7 +288,7 @@ if (($confirm eq "y") || ($confirm eq "Y") || ($confirm eq "")) {
   unlink($TMP_filefrag_1, $TMP_filefrag_2, $TMP_defrag_filelist_1, $TMP_defrag_filelist_2);
 
   system("sync");
-  print ("\n\nDone!\n\n");
+  print ("\n\nDone - Eliminated $total_fragments_eliminated excess fragments this pass.\n\n");
   
   if ($AUTO) { exit; }
   else { goto start; }
